@@ -1,6 +1,7 @@
 from models import Base, session, Book, engine
 import csv
 import datetime
+import time
 
 # Clean Data: Date
 def clean_date(date_str):
@@ -74,10 +75,27 @@ def add_book():
         new_book = Book(title=title, author=author, published_date=date, price=price)
         session.add(new_book)
         session.commit()
+        print('\nBook Added.\n')
+        time.sleep(1.5)
     else:
         print('\nBook already exists.')
         return
     
+# Search for a book
+def search_books():
+    # it would be nice to be able to search by title, author, or id
+    # perhaps that could be it's own menu after choosing 'search for a book' in the main menu?
+    search_text = input('>> Book Title:  ')
+   
+    
+# Display all books
+def display_books():
+    # TODO: probably want to be able to sort the list
+    books = []
+    for book in session.query(Book):
+        # TODO: Format how books are displayed!
+        print(book)
+        
 
 # Display the app menu and prompt the user to make a selection
 def menu():
@@ -110,13 +128,14 @@ def app():
         if choice == '1':
             # add book
             add_book()
-            pass
         elif choice == '2':
             # view all books
-            pass
+            display_books()
+            input('\n\nPress enter to continue...')
         elif choice == '3':
             # search books
-            pass
+            search_books()
+            input('\n\nPress enter to continue...')
         elif choice == '4':
             # book analysis
             pass
