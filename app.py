@@ -1,0 +1,9 @@
+# import models file
+# main menu - add, search, analysis, exit, view
+# add books to the db
+# edit books
+# delete books
+# search function
+# data cleaning
+# Loop running our program (i.e. while True)
+
