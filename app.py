@@ -94,7 +94,11 @@ def display_books():
     books = []
     for book in session.query(Book):
         # TODO: Format how books are displayed!
-        print(book)
+        print(f"""
+{book.id}. {book.title} by {book.author}
+    * Published: {book.published_date.strftime("%B %d, %Y")}
+    * Price: ${book.price/100}
+""")
         
 
 # Display the app menu and prompt the user to make a selection
@@ -131,11 +135,11 @@ def app():
         elif choice == '2':
             # view all books
             display_books()
-            input('\n\nPress enter to continue...')
+            input('\n\nPress enter to return to the main menu...')
         elif choice == '3':
             # search books
             search_books()
-            input('\n\nPress enter to continue...')
+            input('\n\nPress enter to return to the main menu...')
         elif choice == '4':
             # book analysis
             pass
