@@ -2,20 +2,40 @@ from models import Base, session, Book, engine
 import csv
 import datetime
 
-# Clean Date
+# Clean Data: Date
 def clean_date(date_str):
     MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
     split_date = date_str.split(' ')
     # get integer values for month, day, and year
-    month = int(MONTHS.index(split_date[0]) + 1)
-    day = int(split_date[1].replace(',',''))
-    year = int(split_date[2])
-    return datetime.date(year, month, day)
+    try:
+        month = int(MONTHS.index(split_date[0]) + 1)
+        day = int(split_date[1].replace(',',''))
+        year = int(split_date[2])
+    except ValueError:
+        print("""
+** DATE ERROR **
+The date format should include a valid Month Day, Year from the past.
+Example: January 3, 2021
+****************
+""")
+        return
+    else:
+        return datetime.date(year, month, day)
 
-# Clean Price
+# Clean Data: Price
 def clean_price(price_str):
-    price_float = float(price_str)
-    return int(price_float * 100)
+    try:
+        price_float = float(price_str)
+    except ValueError:
+        print("""
+** PRICE ERROR **
+The price format should include a valie number.
+Example: 10.99
+****************
+""")
+        return
+    else:
+        return int(price_float * 100)
 
 # Add CSV
 def add_csv():
@@ -32,6 +52,32 @@ def add_csv():
                 session.add(new_book)
         session.commit()
 
+# Add Book
+def add_book():
+    title = input('\nTitle:  ')
+    author = input('\nAuthor:  ')
+    date_error = True
+    while date_error:
+        date = input('\nPublished Date: (Example: October 12, 2024)  ')
+        date = clean_date(date)
+        if date:
+            date_error = False
+    price_error = True
+    while price_error:
+        price = input('\nPrice: (Example: 9.99)  ')
+        price = clean_price(price)
+        if price:
+            price_error = False
+
+    book_in_db = session.query(Book).filter(Book.title==title).one_or_none()
+    if book_in_db == None:
+        new_book = Book(title=title, author=author, published_date=date, price=price)
+        session.add(new_book)
+        session.commit()
+    else:
+        print('\nBook already exists.')
+        return
+    
 
 # Display the app menu and prompt the user to make a selection
 def menu():
@@ -63,6 +109,7 @@ def app():
 
         if choice == '1':
             # add book
+            add_book()
             pass
         elif choice == '2':
             # view all books
@@ -79,8 +126,5 @@ def app():
 
 if __name__ == '__main__':
     Base.metadata.create_all(engine)
-    add_csv()
-    # app()
-
-    for book in session.query(Book):
-        print(book)
+    # add_csv()
+    app()
