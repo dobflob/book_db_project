@@ -30,7 +30,7 @@ def clean_price(price_str):
     except ValueError:
         print("""
 ** PRICE ERROR **
-The price format should include a valie number.
+The price format should include a valid number.
 Example: 10.99
 ****************
 """)
@@ -82,17 +82,48 @@ def add_book():
         return
     
 # Search for a book
-def search_books():
+def search_books(books):
     # it would be nice to be able to search by title, author, or id
     # perhaps that could be it's own menu after choosing 'search for a book' in the main menu?
-    search_text = input('>> Book Title:  ')
-   
+    book_id_list = []
+    for book in books:
+        book_id_list.append(book.id)
+    print(f'{book_id_list}')
+
+    id_error = True
+    while id_error:
+        try:
+            the_book_id = int(input('\nEnter a number to search for a book by Id:  '))
+            
+        except ValueError:
+                    print(f"""
+** ID ERROR **
+Book id must be a number.
+Select an option from the book id list:
+{book_id_list}
+****************
+""")
+        else:
+            if the_book_id in book_id_list:
+                the_book = session.query(Book).filter(Book.id==the_book_id).first()
+                id_error = False
+                print(f"""
+{the_book.id}. {the_book.title} by {the_book.author}
+    * Published: {the_book.published_date.strftime("%B %d, %Y")}
+    * Price: ${the_book.price/100}
+""")
+            else:
+                print(f"""
+** ID ERROR **
+Select an option from the book id list.
+{book_id_list}
+****************
+""")
     
 # Display all books
-def display_books():
+def display_books(books):
     # TODO: probably want to be able to sort the list
-    books = []
-    for book in session.query(Book):
+    for book in books:
         # TODO: Format how books are displayed!
         print(f"""
 {book.id}. {book.title} by {book.author}
@@ -128,17 +159,17 @@ def app():
     app_running = True
     while app_running:
         choice = menu()
-
+        book_list = session.query(Book)
         if choice == '1':
             # add book
             add_book()
         elif choice == '2':
             # view all books
-            display_books()
+            display_books(book_list)
             input('\n\nPress enter to return to the main menu...')
         elif choice == '3':
             # search books
-            search_books()
+            search_books(book_list)
             input('\n\nPress enter to return to the main menu...')
         elif choice == '4':
             # book analysis
