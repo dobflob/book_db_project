@@ -147,6 +147,18 @@ Confirmation is required to delete a book.
 Press 'y' to confirm the deletion or 'no' to cancel.
 ************************
 """)
+
+# Display all books
+def display_books(books):
+    # TODO: probably want to be able to sort the list
+    for book in books:
+        # TODO: Format how books are displayed!
+
+        print(f"""
+{book.id}. {book.title} by {book.author}
+    * Published: {book.published_date.strftime("%B %d, %Y")}
+    * Price: ${book.price/100}
+""")
     
 # Search for a book
 def search_books(books):
@@ -187,19 +199,28 @@ Select an option from the book id list.
 {book_id_list}
 **************
 """)
-    
-# Display all books
-def display_books(books):
-    # TODO: probably want to be able to sort the list
-    for book in books:
-        # TODO: Format how books are displayed!
 
-        print(f"""
-{book.id}. {book.title} by {book.author}
-    * Published: {book.published_date.strftime("%B %d, %Y")}
-    * Price: ${book.price/100}
+def analyze_books(books):
+    oldest_book = books.order_by(Book.published_date).first()
+    newest_book = books.order_by(Book.published_date.desc()).first()
+    total_books = books.count()
+    python_books = books.filter(Book.title.like('%Python%')).count()
+    sql_books = books.filter(Book.title.like('%SQL%')).count()
+    js_books = books.filter(Book.title.like('%JavaScript%')).count()
+
+    print(F"""
+PROGRAMMING BOOK ANALYSIS
+-------------------------
+Oldest Book: {oldest_book.title}
+Newest Book: {newest_book.title}
+Total Books: {total_books}  
+Python Books: {python_books}
+SQL Books: {sql_books}
+JavaScript Books: {js_books}
 """)
-        
+    
+    time.sleep(1.5)
+    
 
 # Display the app menu and prompt the user to make a selection
 def menu():
@@ -241,7 +262,6 @@ Please choose one of the options above (a number 1-3).
 Press enter to try again.
 ''')
         
-
 # Get user's menu choice and move to the next step until the user exits the program     
 def app():
     app_running = True
@@ -268,7 +288,7 @@ def app():
                     continue
             input('\n\nPress enter to return to the main menu...')
         elif choice == '4':
-            # book analysis
+            analyze_books(book_list)
             pass
         else:
             print('\nGoodbye\n')
