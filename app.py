@@ -32,7 +32,7 @@ def clean_price(price_str):
 ** PRICE ERROR **
 The price format should include a valid number.
 Example: 10.99
-****************
+*****************
 """)
         return
     else:
@@ -52,6 +52,21 @@ def add_csv():
                 new_book = Book(title=title, author=author, published_date=date, price=price)
                 session.add(new_book)
         session.commit()
+
+# Edit Check - make sure edited values are valid
+def edit_check(field_str, current_value):
+    if field_str == 'Published Date':
+        current_value = current_value.strftime("%B %d, %Y")
+    elif field_str == 'Price':
+        current_value = current_value / 100
+
+    print(f'\nCurrent {field_str}: {current_value}')
+    updated_value = input(f'>> Updated {field_str}:  ')
+    if field_str == 'Published Date':
+        updated_value = clean_date(updated_value)
+    elif field_str == 'Price':
+        updated_value = clean_price(updated_value)
+    return updated_value
 
 # Add Book
 def add_book():
@@ -80,6 +95,58 @@ def add_book():
     else:
         print('\nBook already exists.')
         return
+    
+def edit_book(book):
+    updated_title = edit_check('Title', book.title)
+    updated_author = edit_check('Author', book.author)
+
+    date_error = True
+    while date_error:
+        updated_published_date = edit_check('Published Date', book.published_date)
+        if updated_published_date:
+            date_error = False
+
+    price_error = True
+    while price_error:
+        updated_price = edit_check('Price', book.price )
+        if updated_price:
+            price_error = False
+
+    book.title = updated_title
+    book.author = updated_author
+    book.published_date = updated_published_date
+    book.price = updated_price
+    
+    session.commit()
+    print('\n\nBook updated successfully.')
+    time.sleep(1.5)
+    return
+
+
+def delete_book(book):
+    session.delete(book)
+    confirm_error = True
+
+    while confirm_error:
+        confirm = input(f'\n>> Are you sure you want to remove {book.title} from the database? (y/n)  ')
+        if confirm == 'y':
+            session.commit()
+            print(f'\nBook successfully deleted.')
+            confirm_error = False
+            time.sleep(1.5)
+        elif confirm == 'n':
+            print(f'\n{book.title} was not deleted.')
+            session.flush()
+            print(session.dirty)
+            confirm_error = False
+            time.sleep(1.5)
+        else:
+            print("""
+** CONFIRMATION ERROR **
+Confirmation is required to delete a book.
+Press 'y' to confirm the deletion or 'no' to cancel.
+************************
+""")
     
 # Search for a book
 def search_books(books):
@@ -112,12 +179,13 @@ Select an option from the book id list:
     * Published: {the_book.published_date.strftime("%B %d, %Y")}
     * Price: ${the_book.price/100}
 """)
+                return the_book
             else:
                 print(f"""
 ** ID ERROR **
 Select an option from the book id list.
 {book_id_list}
-****************
+**************
 """)
     
 # Display all books
@@ -125,6 +193,7 @@ def display_books(books):
     # TODO: probably want to be able to sort the list
     for book in books:
         # TODO: Format how books are displayed!
+
         print(f"""
 {book.id}. {book.title} by {book.author}
     * Published: {book.published_date.strftime("%B %d, %Y")}
@@ -153,6 +222,25 @@ PROGRAMMING BOOKS
 Please choose one of the options above (a number 1-5).
 Press enter to try again.
 ''')
+            
+def book_menu():
+    while True:
+        print("""
+BOOK OPTIONS:
+-------------
+1. Edit book
+2. Delete book
+3. Main Menu
+""")
+        choice = input('>> What would you like to do?  ')
+        if choice in ['1', '2', '3']:
+            return choice # return will always cancel out / stop a loop - so a valid choice is the only way out of the menu
+        else:
+            input('''
+Please choose one of the options above (a number 1-3).
+Press enter to try again.
+''')
+        
 
 # Get user's menu choice and move to the next step until the user exits the program     
 def app():
@@ -169,7 +257,15 @@ def app():
             input('\n\nPress enter to return to the main menu...')
         elif choice == '3':
             # search books
-            search_books(book_list)
+            selected_book = search_books(book_list)
+            if selected_book:
+                choice = book_menu()
+                if choice == '1':
+                    edit_book(selected_book)
+                elif choice == '2':
+                    delete_book(selected_book)
+                elif choice == '3':
+                    continue
             input('\n\nPress enter to return to the main menu...')
         elif choice == '4':
             # book analysis
